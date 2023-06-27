@@ -1,62 +1,58 @@
-#include <ARTLibrary.h>
+#include "ARTLibrary.h"
 
-// Pin Definitions
-#define IR_PIN_1 2
-#define IR_PIN_2 3
-#define IR_PIN_3 4
-#define MOTOR_A_PIN_1 5
-#define MOTOR_A_PIN_2 6
-#define MOTOR_B_PIN_1 7
-#define MOTOR_B_PIN_2 8
+ARTLibrary art(0.9);  // Set the vigilance parameter
 
-// Line Follower Configuration
-#define INPUT_SIZE 3
-#define CATEGORY_COUNT 2
-#define VIGILANCE 0.9
+// Define pin connections for IR sensors
+const int leftSensorPin = 2;
+const int centerSensorPin = 3;
+const int rightSensorPin = 4;
 
-ARTLibrary art(VIGILANCE, INPUT_SIZE, CATEGORY_COUNT);
+// Define pin connections for motor driver
+const int leftMotorPin1 = 5;
+const int leftMotorPin2 = 6;
+const int rightMotorPin1 = 7;
+const int rightMotorPin2 = 8;
 
 void setup() {
-  // Configure line sensors
-  pinMode(IR_PIN_1, INPUT);
-  pinMode(IR_PIN_2, INPUT);
-  pinMode(IR_PIN_3, INPUT);
+  // Initialize the ART network
+  art.initialize(3, 2);  // 3 inputs (sensors), 2 categories (left/right)
 
-  // Configure motor driver pins
-  pinMode(MOTOR_A_PIN_1, OUTPUT);
-  pinMode(MOTOR_A_PIN_2, OUTPUT);
-  pinMode(MOTOR_B_PIN_1, OUTPUT);
-  pinMode(MOTOR_B_PIN_2, OUTPUT);
+  // Set the motor driver pins as outputs
+  pinMode(leftMotorPin1, OUTPUT);
+  pinMode(leftMotorPin2, OUTPUT);
+  pinMode(rightMotorPin1, OUTPUT);
+  pinMode(rightMotorPin2, OUTPUT);
 }
 
 void loop() {
-  // Read line sensor values
-  int lineSensor1 = digitalRead(IR_PIN_1);
-  int lineSensor2 = digitalRead(IR_PIN_2);
-  int lineSensor3 = digitalRead(IR_PIN_3);
+  // Read sensor values
+  int leftSensorValue = digitalRead(leftSensorPin);
+  int centerSensorValue = digitalRead(centerSensorPin);
+  int rightSensorValue = digitalRead(rightSensorPin);
 
-  // Convert line sensor values to input data
-  float inputData[INPUT_SIZE];
-  inputData[0] = lineSensor1;
-  inputData[1] = lineSensor2;
-  inputData[2] = lineSensor3;
+  // Convert sensor values to ART input (0 or 1)
+  float input[3] = {static_cast<float>(leftSensorValue),
+                    static_cast<float>(centerSensorValue),
+                    static_cast<float>(rightSensorValue)};
 
-  // Predict the direction using ART network
-  int predictedCategory = art.predict(inputData);
+  // Train the ART network with the input
+  art.train(input);
 
-  // Drive the motors based on the predicted direction
-  if (predictedCategory == 0) {  // Left
-    driveMotors(LOW, HIGH, HIGH, LOW);
-  } else if (predictedCategory == 1) {  // Right
-    driveMotors(HIGH, LOW, LOW, HIGH);
+  // Classify the input using the trained network
+  int category = art.classify(input);
+
+  // Motor control based on the ART classification
+  if (category == 0) {
+    // Turn left
+    digitalWrite(leftMotorPin1, LOW);
+    digitalWrite(leftMotorPin2, HIGH);
+    digitalWrite(rightMotorPin1, HIGH);
+    digitalWrite(rightMotorPin2, LOW);
+  } else {
+    // Turn right
+    digitalWrite(leftMotorPin1, HIGH);
+    digitalWrite(leftMotorPin2, LOW);
+    digitalWrite(rightMotorPin1, LOW);
+    digitalWrite(rightMotorPin2, HIGH);
   }
-
-  delay(100);
-}
-
-void driveMotors(int motorAPin1, int motorAPin2, int motorBPin1, int motorBPin2) {
-  digitalWrite(MOTOR_A_PIN_1, motorAPin1);
-  digitalWrite(MOTOR_A_PIN_2, motorAPin2);
-  digitalWrite(MOTOR_B_PIN_1, motorBPin1);
-  digitalWrite(MOTOR_B_PIN_2, motorBPin2);
 }
