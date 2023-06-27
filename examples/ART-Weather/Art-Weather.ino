@@ -1,88 +1,108 @@
-#include <ARTLibrary.h>
-#include <Wire.h>
+#include "ARTLibrary.h"
 #include <SFE_BMP180.h>
 #include <DHT.h>
 
-#define INPUT_SIZE 4
-#define CATEGORY_COUNT 3
-#define VIGILANCE 0.91
+ARTLibrary art(0.91);  // Set the vigilance parameter
 
-SFE_BMP180 bmp180; // BMP180 sensor object
-#define DHTPIN 2    // DHT11 sensor pin
-#define DHTTYPE DHT11   // DHT11 sensor type
-DHT dht(DHTPIN, DHTTYPE); // DHT11 sensor object
+// Define pin connections for BMP180 sensor
+const int bmp180SdaPin = A4;
+const int bmp180SclPin = A5;
 
-ARTLibrary art(VIGILANCE, INPUT_SIZE, CATEGORY_COUNT);
+// Define pin connections for DHT22 sensor
+const int dhtPin = 2;
+DHT dht(dhtPin, DHT22);
+
+// Define weather categories
+enum WeatherCategory {
+  SUNNY,
+  CLOUDY,
+  RAINY,
+  STORMY
+};
 
 void setup() {
-  Serial.begin(9600);
+  // Initialize the ART network
+  art.initialize(3, 4);  // 3 inputs (Temperature, Pressure, Humidity), 4 categories (Weather patterns)
 
-  // Initialize sensors
-  if (!bmp180.begin()) {
-    Serial.println("BMP180 initialization failed!");
-    while (1); // Halt the program
-  }
-
+  // Initialize the BMP180 sensor
+  BMP180 bmp180;
+  bool bmp180Status = bmp180.begin(bmp180SdaPin, bmp180SclPin);
+  
+  // Initialize the DHT22 sensor
   dht.begin();
 }
 
 void loop() {
-  // Read sensor data
-  float temperature = bmp180.readTemperature();
-  float humidity = dht.readHumidity();
-  float dewPoint = calculateDewPoint(temperature, humidity);
-  float pressure = bmp180.readPressure() / 100.0; // Convert Pa to hPa
+  // Read sensor values
+  float temperature = readTemperature();
+  float pressure = readPressure();
+  float humidity = readHumidity();
 
-  // Normalize sensor data
-  float normalizedTemperature = normalize(temperature, -20, 85);
-  float normalizedHumidity = normalize(humidity, 0, 100);
-  float normalizedDewPoint = normalize(dewPoint, -20, 85);
-  float normalizedPressure = normalize(pressure, 900, 1100);
+  // Convert sensor values to ART input
+  float input[3] = {temperature, pressure, humidity};
 
-  // Create input data array
-  float inputData[INPUT_SIZE] = {
-    normalizedTemperature,
-    normalizedHumidity,
-    normalizedDewPoint,
-    normalizedPressure
-  };
+  // Train the ART network with the input
+  art.train(input);
 
-  // Predict weather pattern
-  int predictedCategory = art.predict(inputData);
+  // Classify the input using the trained network
+  int category = art.classify(input);
 
-  // Print predicted weather pattern
-  switch (predictedCategory) {
+  // Map the category to a weather pattern
+  WeatherCategory weather;
+  switch (category) {
     case 0:
-      Serial.println("Cloudy");
+      weather = SUNNY;
       break;
     case 1:
-      Serial.println("Sunny");
+      weather = CLOUDY;
       break;
     case 2:
-      Serial.println("Stormy");
+      weather = RAINY;
       break;
-    
+    case 3:
+      weather = STORMY;
+      break;
     default:
-      Serial.println("Unknown");
+      weather = SUNNY;
       break;
   }
 
-  // Train ART network with the current sensor data
-  art.train(inputData);
+  // Print the predicted weather pattern
+  switch (weather) {
+    case SUNNY:
+      Serial.println("Sunny");
+      break;
+    case CLOUDY:
+      Serial.println("Cloudy");
+      break;
+    case RAINY:
+      Serial.println("Rainy");
+      break;
+    case STORMY:
+      Serial.println("Stormy");
+      break;
+  }
 
-  delay(2500);
+  delay(5000);  // Wait for 5 seconds before taking the next reading
 }
 
-// Helper function to calculate dew point
-float calculateDewPoint(float temperature, float humidity) {
-  float A = 17.27;
-  float B = 237.7;
-  float alpha = ((A * temperature) / (B + temperature)) + log(humidity / 100.0);
-  float dp = (B * alpha) / (A - alpha);
-  return dp;
+float readTemperature() {
+  // Read temperature from DHT22 sensor
+  float temperature = dht.readTemperature();
+  return temperature;
 }
 
-// Helper function to normalize sensor data between 0 and 1
-float normalize(float value, float min, float max) {
-  return (value - min) / (max - min);
+float readPressure() {
+  // Read pressure from BMP180 sensor
+  float pressure = 0.0;
+  if (bmp180.measurePressure()) {
+    pressure = bmp180.getPressure();
+  }
+  return pressure;
+}
+
+float readHumidity() {
+  // Read humidity from DHT22 sensor
+  float humidity = dht.readHumidity();
+  return humidity;
 }
