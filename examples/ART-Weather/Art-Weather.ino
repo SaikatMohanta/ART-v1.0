@@ -38,6 +38,11 @@ void loop() {
   float pressure = readPressure();
   float humidity = readHumidity();
 
+  normalizedTemerature = normalize(temperature, -10, 60);// degree celcius
+  normalizedHumidity = normalize(humidity, 0, 100);// %
+  normalizedPressure = normalize(pressure, 950, 1050);// miliBar
+  normalizedDewPoint = normalize(dewPoint, -10, 60);// degree celcius
+  
   // Convert sensor values to ART input
   float input[3] = {temperature, pressure, humidity};
 
@@ -105,4 +110,18 @@ float readHumidity() {
   // Read humidity from DHT22 sensor
   float humidity = dht.readHumidity();
   return humidity;
+}
+
+float calculateDewPoint(float temperature, float humidity) {
+  float A = 17.27;
+  float B = 237.7;
+  float alpha = ((A * temperature) / (B + temperature)) + log(humidity / 100.0);
+  float dp = (B * alpha) / (A - alpha);
+  return dp;
+}
+
+// Helper function to normalize sensor data between 0 and 1
+float normalize(float value, float min, float max) {
+  float norm = (value - min) / (max - min);
+  return norm;
 }
