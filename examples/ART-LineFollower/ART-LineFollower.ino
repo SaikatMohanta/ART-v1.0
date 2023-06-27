@@ -1,6 +1,10 @@
 #include "ARTLibrary.h"
 
-ARTLibrary art(0.9);  // Set the vigilance parameter
+#define INPUTS 3
+#define CATEGORIES 2
+#define VIGILANCE 0.91
+
+ARTLibrary art(VIGILANCE);  // Set the vigilance parameter
 
 // Define pin connections for IR sensors
 const int leftSensorPin = 2;
@@ -15,7 +19,7 @@ const int rightMotorPin2 = 8;
 
 void setup() {
   // Initialize the ART network
-  art.initialize(3, 2);  // 3 inputs (sensors), 2 categories (left/right)
+  art.initialize(INPUTS, CATEGORIES);  // 3 inputs (sensors), 2 categories (left/right)
 
   // Set the motor driver pins as outputs
   pinMode(leftMotorPin1, OUTPUT);
