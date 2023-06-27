@@ -1,7 +1,7 @@
 #ifndef ARTLibrary_h
 #define ARTLibrary_h
 
-#include <Arduino.h>
+#include "Arduino.h"
 
 #define MAX_INPUT_SIZE 10
 #define MAX_CATEGORY_SIZE 10
