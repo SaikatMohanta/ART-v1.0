@@ -4,8 +4,8 @@
 #include <DHT.h>
 
 #define INPUT_SIZE 4
-#define CATEGORY_COUNT 5
-#define VIGILANCE 0.9
+#define CATEGORY_COUNT 3
+#define VIGILANCE 0.91
 
 SFE_BMP180 bmp180; // BMP180 sensor object
 #define DHTPIN 2    // DHT11 sensor pin
@@ -34,10 +34,10 @@ void loop() {
   float pressure = bmp180.readPressure() / 100.0; // Convert Pa to hPa
 
   // Normalize sensor data
-  float normalizedTemperature = normalize(temperature, -40, 85);
+  float normalizedTemperature = normalize(temperature, -20, 85);
   float normalizedHumidity = normalize(humidity, 0, 100);
-  float normalizedDewPoint = normalize(dewPoint, -40, 85);
-  float normalizedPressure = normalize(pressure, 800, 1200);
+  float normalizedDewPoint = normalize(dewPoint, -20, 85);
+  float normalizedPressure = normalize(pressure, 900, 1100);
 
   // Create input data array
   float inputData[INPUT_SIZE] = {
@@ -61,12 +61,7 @@ void loop() {
     case 2:
       Serial.println("Stormy");
       break;
-    case 3:
-      Serial.println("Low Pressure");
-      break;
-    case 4:
-      Serial.println("High Pressure");
-      break;
+    
     default:
       Serial.println("Unknown");
       break;
@@ -75,7 +70,7 @@ void loop() {
   // Train ART network with the current sensor data
   art.train(inputData);
 
-  delay(5000);
+  delay(2500);
 }
 
 // Helper function to calculate dew point
@@ -83,7 +78,8 @@ float calculateDewPoint(float temperature, float humidity) {
   float A = 17.27;
   float B = 237.7;
   float alpha = ((A * temperature) / (B + temperature)) + log(humidity / 100.0);
-  return (B * alpha) / (A - alpha);
+  float dp = (B * alpha) / (A - alpha);
+  return dp;
 }
 
 // Helper function to normalize sensor data between 0 and 1
