@@ -1,62 +1,74 @@
-#include "ARTLibrary.h"
+#include <ART.h>
 
-#define INPUTS 3
-#define CATEGORIES 2
-#define VIGILANCE 0.91
+// Define ART parameters
+const int inputSize = 3;  // Three proximity sensors
+const int prototypeSize = 2;  // Two categories: On the line and Off the line
+const float vigilance = 0.8;
 
-ARTLibrary art(VIGILANCE);  // Set the vigilance parameter
+// Create an instance of the ART network
+ART art(inputSize, prototypeSize, vigilance);
 
-// Define pin connections for IR sensors
-const int leftSensorPin = 2;
-const int centerSensorPin = 3;
-const int rightSensorPin = 4;
+// Define sensor pins
+const int sensorLeftPin = 2;
+const int sensorCenterPin = 3;
+const int sensorRightPin = 4;
 
-// Define pin connections for motor driver
-const int leftMotorPin1 = 5;
-const int leftMotorPin2 = 6;
-const int rightMotorPin1 = 7;
-const int rightMotorPin2 = 8;
+// Define motor pins
+const int leftMotor1 = 5;
+const int leftMotor2 = 6;
+const int rightMotor1 = 7;
+const int rightMotor2 = 8;
+
+// Sensor thresholds
+const int sensorThreshold = 500;  // Adjust this threshold for your sensors
 
 void setup() {
-  // Initialize the ART network
-  art.initialize(INPUTS, CATEGORIES);  // 3 inputs (sensors), 2 categories (left/right)
+  // Initialize sensors as inputs
+  pinMode(sensorLeftPin, INPUT);
+  pinMode(sensorCenterPin, INPUT);
+  pinMode(sensorRightPin, INPUT);
 
-  // Set the motor driver pins as outputs
-  pinMode(leftMotorPin1, OUTPUT);
-  pinMode(leftMotorPin2, OUTPUT);
-  pinMode(rightMotorPin1, OUTPUT);
-  pinMode(rightMotorPin2, OUTPUT);
+  // Initialize motors as outputs
+  pinMode(leftMotor1, OUTPUT);
+  pinMode(leftMotor2, OUTPUT);
+  pinMode(rightMotor1, OUTPUT);
+  pinMode(rightMotor2, OUTPUT);
+
+  // Initialize the ART network
+  float onLine[inputSize] = {0.0, 0.0, 0.0};
+  float offLine[inputSize] = {1.0, 1.0, 1.0};
+
+  art.initialize(onLine);    // Initialize category for "On the line"
+  art.initialize(offLine);   // Initialize category for "Off the line"
 }
 
 void loop() {
   // Read sensor values
-  int leftSensorValue = digitalRead(leftSensorPin);
-  int centerSensorValue = digitalRead(centerSensorPin);
-  int rightSensorValue = digitalRead(rightSensorPin);
+  int leftSensorValue = digitalRead(sensorLeftPin);
+  int centerSensorValue = digitalRead(sensorCenterPin);
+  int rightSensorValue = digitalRead(sensorRightPin);
 
-  // Convert sensor values to ART input (0 or 1)
-  float input[3] = {static_cast<float>(leftSensorValue),
-                    static_cast<float>(centerSensorValue),
-                    static_cast<float>(rightSensorValue)};
+  // Create input vector for the ART network
+  float input[inputSize] = {float(leftSensorValue), float(centerSensorValue), float(rightSensorValue)};
 
-  // Train the ART network with the input
-  art.train(input);
-
-  // Classify the input using the trained network
+  // Classify sensor readings
   int category = art.classify(input);
 
-  // Motor control based on the ART classification
-  if (category == 0) {
+  // Perform actions based on the category
+  if (category == 0) {  // "On the line"
+    // Forward motion
+    digitalWrite(leftMotor1, HIGH);
+    digitalWrite(leftMotor2, LOW);
+    digitalWrite(rightMotor1, HIGH);
+    digitalWrite(rightMotor2, LOW);
+  } else if (category == 1) {  // "Off the line"
     // Turn left
-    digitalWrite(leftMotorPin1, LOW);
-    digitalWrite(leftMotorPin2, HIGH);
-    digitalWrite(rightMotorPin1, HIGH);
-    digitalWrite(rightMotorPin2, LOW);
-  } else {
-    // Turn right
-    digitalWrite(leftMotorPin1, HIGH);
-    digitalWrite(leftMotorPin2, LOW);
-    digitalWrite(rightMotorPin1, LOW);
-    digitalWrite(rightMotorPin2, HIGH);
+    digitalWrite(leftMotor1, LOW);
+    digitalWrite(leftMotor2, HIGH);
+    digitalWrite(rightMotor1, HIGH);
+    digitalWrite(rightMotor2, LOW);
   }
+
+  // Delay to control the speed of the robot
+  delay(100);
 }
