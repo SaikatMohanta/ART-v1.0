@@ -22,30 +22,81 @@ ART networks exhibit several desirable properties, including stability-plasticit
 
 Overall, ART networks provide a useful framework for addressing pattern recognition and classification tasks, particularly in situations where the number of categories is unknown or may change over time.
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-The ARTLibrary provided above is a simplified implementation of the Adaptive Resonance Theory (ART) architecture for an Arduino board. Let's dive into each component of the library and its functionality:
 
-1. `ARTLibrary` class:
-   - The `ARTLibrary` class represents the main implementation of the ART network. It takes the vigilance parameter as a constructor argument, which determines the level of similarity required for a pattern to activate a category.
-   - The class includes member variables such as `vigilance`, `weights`, `activations`, `numCategories`, and `numInputs` to store the necessary data for the ART network.
+The custom ART (Adaptive Resonance Theory) library I provided allows you to implement a simplified version of an ART-like neural network on an Arduino platform for unsupervised learning and classification tasks. Below, I'll provide a detailed explanation of how to use this custom ART library:
 
-2. `initialize` method:
-   - The `initialize` method initializes the ART network by setting the input size (`inputSize`) and category size (`categorySize`).
-   - It initializes the weights and activations arrays to zero for all categories.
+### Step 1: Include the Library
+In your Arduino sketch, you first need to include the ART library header file at the beginning of your code:
 
-3. `train` method:
-   - The `train` method is responsible for training the ART network with input patterns.
-   - It takes an input array of floats (`input[MAX_INPUT_SIZE]`) as the training pattern.
-   - The method finds the category with the highest activation based on the input pattern and calculates the activation values for all categories.
-   - If the winner category meets the vigilance criterion (similarity >= vigilance), the method updates the weights of the winner category to improve the match with the input pattern.
 
-4. `classify` method:
-   - The `classify` method predicts the category for a given input pattern.
-   - It takes an input array of floats (`input[MAX_INPUT_SIZE]`) as the input pattern.
-   - The method calculates the activation values for all categories based on the input pattern and returns the index of the category with the highest activation.
+#include "ART.h"
 
-The library assumes a fixed-size input (`MAX_INPUT_SIZE`) and category (`MAX_CATEGORY_SIZE`) for simplicity. You can modify these constants to fit your specific needs.
 
-To use the library, you need to create an instance of the `ARTLibrary` class, initialize it with the vigilance parameter, and then use the `train` and `classify` methods to train the network and predict categories based on input patterns.
+Step 2: Define Parameters
+You should define some essential parameters for your ART network:
+
+- `inputSize`: The dimensionality of your input data. For example, if you're working with 2D data points, set `inputSize` to 2.
+
+- `prototypeSize`: The number of prototype vectors or categories you want your ART network to learn. This determines how many categories the network can classify data into.
+
+- `vigilance`: This parameter controls the network's sensitivity to incoming data. It's a value between 0 and 1. A higher value makes the network less sensitive, while a lower value makes it more sensitive.
+
+Step 3: Create an ART Instance
+Create an instance of the ART network with the parameters you defined:
+
+
+ART art(inputSize, prototypeSize, vigilance);
+
+
+Step 4: Initialize the Network
+In the `setup` function or any initialization routine, you should initialize the ART network with some initial data. This data serves as the starting prototypes or categories that the network will use for comparison when classifying new data. For example:
+
+cpp
+void setup() {
+    // Initialize the ART network with some sample data
+    float sample1[inputSize] = {0.1, 0.2};
+    float sample2[inputSize] = {0.8, 0.9};
+    float sample3[inputSize] = {0.3, 0.4};
+
+    art.initialize(sample1);
+    art.initialize(sample2);
+    art.initialize(sample3);
+}
+
+
+Here, we've provided three initial data points to the ART network to start with.
+
+Step 5: Classify New Data
+In the `loop` function or whenever you want to classify new data, use the `classify` method of the ART instance to determine the category that the new data belongs to:
+
+cpp
+void loop() {
+    // Input data to classify
+    float input[inputSize] = {0.6, 0.7};
+
+    // Classify the input data
+    int category = art.classify(input);
+
+    // Print the category
+    Serial.print("Input belongs to category: ");
+    Serial.println(category);
+
+    delay(1000); // Delay for visualization purposes
+}
+
+
+In this example, we provide a new input data point, and the `classify` method returns the category to which the input data is classified.
+
+Important Notes:
+- The `initialize` method is used for adding initial data points to the network. These data points serve as the starting prototypes.
+
+- The `train` method is implicitly called within the `classify` method when the input doesn't match any existing category prototypes. It creates a new category if the input is dissimilar from existing categories or updates an existing category if it's a good match.
+
+- The network continues to learn and adapt to incoming data as you keep providing new input points over time.
+
+- ART networks are sensitive to the `vigilance` parameter. Experiment with different values to control the network's behavior and adapt it to your specific application.
+
+- This is a basic and simplified ART implementation for educational purposes. Real-world applications may require additional optimizations and considerations.
 
 Please note that this implementation is a simplified version of ART and may not include all the intricacies and optimizations found in a full-scale ART implementation.
 _____________________________________________________________________________________________________________________________________________________________________
