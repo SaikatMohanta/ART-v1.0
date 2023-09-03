@@ -1,21 +1,39 @@
-#include "ARTLibrary.h"
+#include <Arduino.h>
+#include "ART.h"
 
-ARTLibrary art(0.9);  // Set the vigilance parameter
+// Define the input size and prototype size
+const int inputSize = 2;
+const int prototypeSize = 5;
+
+// Define the vigilance parameter (between 0 and 1)
+const float vigilance = 0.7;
+
+// Create an instance of the ART network
+ART art(inputSize, prototypeSize, vigilance);
 
 void setup() {
-  // Initialize the ART network
-  art.initialize(4, 3);  // Specify the input size and category size
+    Serial.begin(9600);
+    
+    // Initialize the ART network with some sample data
+    float sample1[inputSize] = {0.1, 0.2};
+    float sample2[inputSize] = {0.8, 0.9};
+    float sample3[inputSize] = {0.3, 0.4};
+
+    art.initialize(sample1);
+    art.initialize(sample2);
+    art.initialize(sample3);
 }
 
 void loop() {
-  float input[4] = {0.5, 0.3, 0.8, 0.2};
+    // Input data to classify
+    float input[inputSize] = {0.6, 0.7};
 
-  // Train the ART network with the input
-  art.train(input);
+    // Classify the input data
+    int category = art.classify(input);
 
-  // Classify the input using the trained network
-  int category = art.classify(input);
+    Serial.print("Input belongs to category: ");
+    Serial.println(category);
 
-  // Do something with the category result
-  // ...
+    delay(1000);
 }
+
