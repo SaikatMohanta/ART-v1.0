@@ -1,94 +1,104 @@
-#include "ARTLibrary.h"
+#include "ART.h"
 
-ARTLibrary::ARTLibrary(float vigilance) {
-  this->vigilance = vigilance;
+ART::ART(int inputSize, int prototypeSize, float vigilance) {
+    this->inputSize = inputSize;
+    this->prototypeSize = prototypeSize;
+    this->vigilance = vigilance;
+
+    prototypes = new float[inputSize * prototypeSize];
+    categoryTaken = new bool[prototypeSize];
+
+    // Initialize prototypes and categoryTaken arrays
+    for (int i = 0; i < prototypeSize; i++) {
+        categoryTaken[i] = false;
+        for (int j = 0; j < inputSize; j++) {
+            prototypes[i * inputSize + j] = 0.0;
+        }
+    }
 }
 
-void ARTLibrary::initialize(int inputSize, int categorySize) {
-  numInputs = inputSize;
-  numCategories = categorySize;
-
-  // Initialize the weights and activations to zero
-  for (int i = 0; i < numCategories; i++) {
-    for (int j = 0; j < numInputs; j++) {
-      weights[i][j] = 0.0;
+void ART::initialize(float* input) {
+    // Find an uncommitted category for the input
+    int uncommittedCategory = -1;
+    for (int i = 0; i < prototypeSize; i++) {
+        if (!categoryTaken[i]) {
+            uncommittedCategory = i;
+            break;
+        }
     }
-    activations[i] = 0.0;
-  }
+
+    if (uncommittedCategory != -1) {
+        // Assign the input to the uncommitted category
+        categoryTaken[uncommittedCategory] = true;
+        for (int j = 0; j < inputSize; j++) {
+            prototypes[uncommittedCategory * inputSize + j] = input[j];
+        }
+    }
 }
 
-void ARTLibrary::train(float input[MAX_INPUT_SIZE]) {
-  // Find the category with the highest activation
-  int winner = 0;
-  float maxActivation = 0.0;
+void ART::train(float* input) {
+    // Find the category with the highest match to the input
+    int winningCategory = -1;
+    float maxResponse = -1.0;
 
-  for (int i = 0; i < numCategories; i++) {
-    float dotProduct = 0.0;
-    float inputMagnitude = 0.0;
-    float weightMagnitude = 0.0;
+    for (int i = 0; i < prototypeSize; i++) {
+        if (categoryTaken[i]) {
+            float dotProduct = 0.0;
+            float inputNorm = 0.0;
+            float prototypeNorm = 0.0;
 
-    // Calculate the dot product and magnitudes
-    for (int j = 0; j < numInputs; j++) {
-      dotProduct += weights[i][j] * input[j];
-      inputMagnitude += input[j] * input[j];
-      weightMagnitude += weights[i][j] * weights[i][j];
+            for (int j = 0; j < inputSize; j++) {
+                dotProduct += input[j] * prototypes[i * inputSize + j];
+                inputNorm += input[j] * input[j];
+                prototypeNorm += prototypes[i * inputSize + j] * prototypes[i * inputSize + j];
+            }
+
+            float response = dotProduct / (sqrt(inputNorm) * sqrt(prototypeNorm));
+
+            if (response > maxResponse) {
+                maxResponse = response;
+                winningCategory = i;
+            }
+        }
     }
 
-    // Calculate the activation
-    float activation = dotProduct / (sqrt(inputMagnitude) + sqrt(weightMagnitude));
-
-    // Update the winner if the activation is higher
-    if (activation > maxActivation) {
-      maxActivation = activation;
-      winner = i;
+    if (maxResponse >= vigilance) {
+        // Update the winning category
+        for (int j = 0; j < inputSize; j++) {
+            prototypes[winningCategory * inputSize + j] =
+                input[j] * vigilance + prototypes[winningCategory * inputSize + j] * (1 - vigilance);
+        }
+    } else {
+        // Create a new category
+        initialize(input);
     }
-
-    activations[i] = activation;
-  }
-
-  // Check if the winner meets the vigilance criterion
-  float inputMagnitude = 0.0;
-  for (int i = 0; i < numInputs; i++) {
-    inputMagnitude += input[i] * input[i];
-  }
-
-  float similarity = maxActivation / sqrt(inputMagnitude);
-  if (similarity >= vigilance) {
-    // Update the weights of the winner category
-    for (int i = 0; i < numInputs; i++) {
-      weights[winner][i] = (weights[winner][i] * activations[winner] + input[i]) / (activations[winner] + 1);
-    }
-  }
 }
 
-int ARTLibrary::classify(float input[MAX_INPUT_SIZE]) {
-  // Find the category with the highest activation
-  int winner = 0;
-  float maxActivation = 0.0;
+int ART::classify(float* input) {
+    // Find the category with the highest match to the input
+    int winningCategory = -1;
+    float maxResponse = -1.0;
 
-  for (int i = 0; i < numCategories; i++) {
-    float dotProduct = 0.0;
-    float inputMagnitude = 0.0;
-    float weightMagnitude = 0.0;
+    for (int i = 0; i < prototypeSize; i++) {
+        if (categoryTaken[i]) {
+            float dotProduct = 0.0;
+            float inputNorm = 0.0;
+            float prototypeNorm = 0.0;
 
-    // Calculate the dot product and magnitudes
-    for (int j = 0; j < numInputs; j++) {
-      dotProduct += weights[i][j] * input[j];
-      inputMagnitude += input[j] * input[j];
-      weightMagnitude += weights[i][j] * weights[i][j];
+            for (int j = 0; j < inputSize; j++) {
+                dotProduct += input[j] * prototypes[i * inputSize + j];
+                inputNorm += input[j] * input[j];
+                prototypeNorm += prototypes[i * inputSize + j] * prototypes[i * inputSize + j];
+            }
+
+            float response = dotProduct / (sqrt(inputNorm) * sqrt(prototypeNorm));
+
+            if (response > maxResponse) {
+                maxResponse = response;
+                winningCategory = i;
+            }
+        }
     }
 
-    // Calculate the activation
-    float activation = dotProduct / (sqrt(inputMagnitude) + sqrt(weightMagnitude));
-
-    // Update the winner if the activation is higher
-    if (activation > maxActivation) {
-      maxActivation = activation;
-      winner = i;
-    }
-
-    activations[i] = activation;
-  }
-
-  return winner;
+    return winningCategory;
 }
