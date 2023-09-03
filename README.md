@@ -1,4 +1,4 @@
-# ARTLibrary-v1.0
+# ART-v1.0
 A basic library to implement Adaptive Resonance Theory, a special type of Artificial Neural Network designed for unsupervised learning, into your very own Arduino Boards. 
 ART (Adaptive Resonance Theory) is a type of artificial neural network (ANN) architecture that was developed by Stephen Grossberg and Gail Carpenter in the 1980s. It is designed to address the stability-plasticity dilemma that is often encountered in neural networks, which refers to the challenge of maintaining stable learning while also adapting to new information.
 
