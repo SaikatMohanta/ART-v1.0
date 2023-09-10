@@ -14,13 +14,13 @@ ART1 is primarily used for unsupervised learning tasks, such as clustering and p
 
 The library has the following characteristics of ART1:
 
-1. **Binary Input Handling**: ART1 is suitable for binary input data, and your code does not appear to handle continuous-valued input features.
+1. Binary Input Handling: ART1 is suitable for binary input data, and your code does not appear to handle continuous-valued input features.
 
-2. **Vigilance Parameter**: Your code includes the `vigilance` parameter, which determines how similar an input pattern must be to an existing category to be assimilated. This is a central aspect of ART1.
+2. Vigilance Parameter: The code includes the `vigilance` parameter, which determines how similar an input pattern must be to an existing category to be assimilated. This is a central aspect of ART1.
 
-3. **Initialization and Training**: Your code includes methods for initializing the network with input data (`initialize`) and training the network (`train`). These are core components of ART1, where categories are created and updated based on input patterns.
+3. Initialization and Training: Your code includes methods for initializing the network with input data (`initialize`) and training the network (`train`). These are core components of ART1, where categories are created and updated based on input patterns.
 
-While your library implements a simplified version of ART1, it's important to note that there are various extensions and modifications to ART1, such as ART2 and ARTMAP, which handle different types of input data and learning paradigms. These extensions may incorporate real-valued inputs or supervised learning aspects, which the basic ART1 does not cover.
+While the library implements a simplified version of ART1, it's important to note that there are various extensions and modifications to ART1, such as ART2 and ARTMAP, which handle different types of input data and learning paradigms. These extensions may incorporate real-valued inputs or supervised learning aspects, which the basic ART1 does not cover.
 
 The ART learning algorithm involves the following steps:
 
@@ -35,7 +35,7 @@ The ART learning algorithm involves the following steps:
 ART networks exhibit several desirable properties, including stability-plasticity balance, incremental learning, and resistance to noise and interference. They are also capable of adapting to changing environments and can dynamically adjust their category representations as new patterns are encountered.
 
 Overall, ART networks provide a useful framework for addressing pattern recognition and classification tasks, particularly in situations where the number of categories is unknown or may change over time.
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 The custom ART (Adaptive Resonance Theory) library I provided allows you to implement a simplified version of an ART-like neural network on an Arduino platform for unsupervised learning and classification tasks. Below, I'll provide a detailed explanation of how to use this custom ART library:
 
