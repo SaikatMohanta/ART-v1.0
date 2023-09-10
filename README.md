@@ -8,6 +8,20 @@ The key idea behind ART networks is the concept of resonance, which refers to th
 
 The ART architecture consists of two main layers: the input layer and the recognition layer. The input layer receives the input patterns, while the recognition layer contains a set of categories that can be activated by the input patterns. Each category has associated weight values that represent its knowledge or prototype.
 
+The library appears to implement a simplified version of ART1 (Adaptive Resonance Theory 1) neural network architecture. ART1 is one of the fundamental variants of the ART family of neural networks, and it is specifically designed for binary input data, where input features are typically represented as binary values (0 or 1).
+
+ART1 is primarily used for unsupervised learning tasks, such as clustering and pattern recognition, where it dynamically creates and adapts categories to group similar input patterns. The key feature of ART1 is the use of a vigilance parameter, which controls the level of similarity required for input patterns to be assimilated into existing categories.
+
+The library has the following characteristics of ART1:
+
+1. **Binary Input Handling**: ART1 is suitable for binary input data, and your code does not appear to handle continuous-valued input features.
+
+2. **Vigilance Parameter**: Your code includes the `vigilance` parameter, which determines how similar an input pattern must be to an existing category to be assimilated. This is a central aspect of ART1.
+
+3. **Initialization and Training**: Your code includes methods for initializing the network with input data (`initialize`) and training the network (`train`). These are core components of ART1, where categories are created and updated based on input patterns.
+
+While your library implements a simplified version of ART1, it's important to note that there are various extensions and modifications to ART1, such as ART2 and ARTMAP, which handle different types of input data and learning paradigms. These extensions may incorporate real-valued inputs or supervised learning aspects, which the basic ART1 does not cover.
+
 The ART learning algorithm involves the following steps:
 
 1. Initialization: Initialize the network by setting the vigilance parameter, initializing category weights, and setting the activations of all categories to zero.
@@ -51,7 +65,7 @@ ART art(inputSize, prototypeSize, vigilance);
 Step 4: Initialize the Network
 In the `setup` function or any initialization routine, you should initialize the ART network with some initial data. This data serves as the starting prototypes or categories that the network will use for comparison when classifying new data. For example:
 
-cpp
+
 void setup() {
     // Initialize the ART network with some sample data
     float sample1[inputSize] = {0.1, 0.2};
@@ -69,7 +83,7 @@ Here, we've provided three initial data points to the ART network to start with.
 Step 5: Classify New Data
 In the `loop` function or whenever you want to classify new data, use the `classify` method of the ART instance to determine the category that the new data belongs to:
 
-cpp
+
 void loop() {
     // Input data to classify
     float input[inputSize] = {0.6, 0.7};
