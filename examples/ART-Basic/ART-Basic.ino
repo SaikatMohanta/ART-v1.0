@@ -26,7 +26,7 @@ void setup() {
 
 void loop() {
     // Input data to classify
-    float input[inputSize] = {0.6, 0.7};
+    float input[inputSize] = {0.789, 0.899};
 
     // Classify the input data
     int category = art.classify(input);
